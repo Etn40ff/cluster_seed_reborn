@@ -4,27 +4,34 @@ class ClusterSeed2(SageObject):
     
     def __init__(self, data):
         if isinstance(data, Matrix):
-            if not data.is_skew_symmetrizable( positive=True ):
-                raise ValueError('data must be skew-symmetrizable.')
-            self._n = data.ncols()
-            self._B = copy(data)
+            self._B0 = copy(data)
+            self._n = self._B0.ncols()
+            self._m = self._B0.nrows()
+            self._B = copy(self._B0[:self._n,:self._n])
+            if not self._B.is_skew_symmetrizable(positive=True):
+                raise ValueError('data must have skew-symmetrizable principal part.')
             self._C = identity_matrix(self._n)
             self._G = identity_matrix(self._n)
-            self._Y = PolynomialRing(QQ,['y%s'%i for i in range(self._n)])
-            self._F = dict([ (i,self._Y(1)) for i in range(self._n) ])
-
+            self._U = PolynomialRing(QQ,['u%s'%i for i in xrange(self._n)])
+            self._F = dict([ (i,self._U(1)) for i in xrange(self._n) ])
+            self._R = PolynomialRing(QQ,['x%s'%i for i in xrange(self._m)])
+            self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._B0[i,j] for i in xrange(self._n,self._m)])) for j in xrange(self._n)])
+            self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._B0[i,j] for i in xrange(self._m)])) for j in xrange(self._n)])
         # at the moment we only deal with b_matrices
         else:
             raise NotImplementedError('At the moment we only deal with matrices.')
 
     def __copy__(self):
         other = type(self).__new__(type(self))
+        other._B0 = copy(self._B0)
         other._n = self._n
+        other._m = self._m
         other._B = copy(self._B)
         other._C = copy(self._C)
         other._G = copy(self._G)
-        other._Y = copy(self._Y)
+        other._U = copy(self._U)
         other._F = copy(self._F)
+        other._R = copy(self._R)
         return other
     
     def mutate(self, sequence, inplace=True):
@@ -45,13 +52,13 @@ class ClusterSeed2(SageObject):
                 raise ValueError('Cannot mutate in direction' + str(k) + '.')
             
             # F-polynomials
-            pos = seed._Y(1)
-            neg = seed._Y(1)
+            pos = seed._U(1)
+            neg = seed._U(1)
             for j in xrange(seed._n):
                 if seed._C[j,k] > 0:
-                    pos *= seed._Y.gen(j)**seed._C[j,k]
+                    pos *= seed._U.gen(j)**seed._C[j,k]
                 else:
-                    neg *= seed._Y.gen(j)**(-seed._C[j,k])
+                    neg *= seed._U.gen(j)**(-seed._C[j,k])
                 if seed._B[j,k] > 0:
                     pos *= seed._F[j]**seed._B[j,k]
                 else:
@@ -87,5 +94,10 @@ class ClusterSeed2(SageObject):
         if not inplace:
             return seed
 
+    def cluster_variable(self, k):
+        g_mon = prod([self._R.gen(i)**self._G[i,k] for i in xrange(self._n)])
+        F_num = self._F[k].subs(self._yhat)
+        F_den = self._F[k].subs(self._y).denominator()
 
 
+         
