@@ -96,8 +96,8 @@ class ClusterSeed2(SageObject):
 
     def cluster_variable(self, k):
         g_mon = prod([self._R.gen(i)**self._G[i,k] for i in xrange(self._n)])
-        F_num = self._F[k].subs(self._yhat)
-        F_den = self._F[k].subs(self._y).denominator()
-
+        F_std = self._F[k].subs(self._yhat)
+        F_trop = self._F[k].subs(self._y).denominator()
+        return g_mon*F_std*F_trop
 
          
