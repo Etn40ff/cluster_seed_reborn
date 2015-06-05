@@ -56,6 +56,9 @@ class SidestWeightMinor(SageObject):
 
         extended_B = block_matrix([[self._B],[identity_matrix(self._rank)]])
         self._cluster_seed = ClusterSeed2(extended_B)
+        self._salvo_cluster = TropicalClusterAlgebra(self._B)
+        self._regular_glist = flatten(self._salvo_cluster.affine_tubes())
+        self._regular_glist = map(lambda x: tuple(vector(self._salvo_cluster.to_weight(x))), self._regular_glist)
 
         temp_coeff = []
         self._w = self._RootSystem._fundamental_weights
@@ -113,11 +116,13 @@ class SidestWeightMinor(SageObject):
         return tuple(coxeter)
 
 
-    def generic_evaluation(self,xlist,wt1,wt2=None):
+    def generic_evaluation(self,xlist,wt1,wt2=None,bad_flag=False):
         if wt2 == None:
             wt2 = copy(wt1)
         if xlist == []:
             if wt1 == wt2:
+                if bad_flag:
+                    print "You are probably about to fall into a trap.  The non-extremal vectors are coming!"
                 return 1
             else:
                 return 0
@@ -129,16 +134,17 @@ class SidestWeightMinor(SageObject):
             alpha = -self._RootSystem._simple_roots[-sub-1]
         output = 0
         pairing = self._RootSystem.pairing(alpha,wt1)
-        #if (sub > 0 and -pairing > 1) or (sub < 0 and pairing > 1):
+        if (sub > 0 and -pairing > 1) or (sub < 0 and pairing > 1):
+            bad_flag = True
             #print "You are probably about to fall into a trap.  The non-extremal vectors are coming!"
             #print "weight=",self._RootSystem.weightify(wt1)
             #print "root=",alpha
             #print "pairing=",pairing
         for j in xrange(max(-pairing+1,1)):
             if sub > 0:
-                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2)*self._polygens[sub-1]**j
+                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2,bad_flag)*self._polygens[sub-1]**j
             else:
-                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2)*self._polygens[self._rank-sub-1]**(pairing+j)
+                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2,bad_flag)*self._polygens[self._rank-sub-1]**(pairing+j)
         return output
 
 
