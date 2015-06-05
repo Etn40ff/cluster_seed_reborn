@@ -168,10 +168,16 @@ class ClusterSeed2(SageObject):
 
 
     def cluster_variable(self, k):
-        g_mon = prod([self._R.gen(i)**self._G[i,k] for i in xrange(self._n)])
-        F_std = self._F[k].subs(self._yhat)
-        F_trop = self._F[k].subs(self._y).denominator()
-        return g_mon*F_std*F_trop
+        if k in range(self._n):
+            g_mon = prod([self._R.gen(i)**self._G[i,k] for i in xrange(self._n)])
+            F_std = self._F[k].subs(self._yhat)
+            F_trop = self._F[k].subs(self._y).denominator()
+            return g_mon*F_std*F_trop
+        if isinstance(k,tuple) and k in self._F_dict.keys():
+            g_mon = prod([self._R.gen(i)**k[i] for i in xrange(self._n)])
+            F_std = self._F_dict[k].subs(self._yhat)
+            F_trop = self._F_dict[k].subs(self._y).denominator()
+            return g_mon*F_std*F_trop
 
         
 
