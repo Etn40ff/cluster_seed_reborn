@@ -58,9 +58,9 @@ class SidestWeightMinor(SageObject):
         self._cluster_seed = ClusterSeed2(extended_B)
 
         temp_coeff = []
-        w = self._RootSystem._fundamental_weights
+        self._w = self._RootSystem._fundamental_weights
         for i in xrange(self._rank):
-            coeff = self.generic_evaluation(self._double_coxeter,self._coxeter*w[i],w[i])
+            coeff = self.generic_evaluation(self._double_coxeter,self._coxeter*self._w[i],self._w[i])
             temp_coeff.append(coeff)
 
         self._coefficients = []
@@ -76,6 +76,10 @@ class SidestWeightMinor(SageObject):
         clgens = self._cluster_seed._R.gens()
         self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
     
+
+    def g_to_weight(self,gvect):
+        return sum([gvect[i]*self._w[i] for i in xrange(self._rank)])
+
 
     def coxeter(self):
         r"""
@@ -109,7 +113,9 @@ class SidestWeightMinor(SageObject):
         return tuple(coxeter)
 
 
-    def generic_evaluation(self,xlist,wt1,wt2):
+    def generic_evaluation(self,xlist,wt1,wt2=None):
+        if wt2 == None:
+            wt2 = copy(wt1)
         if xlist == []:
             if wt1 == wt2:
                 return 1
@@ -123,8 +129,8 @@ class SidestWeightMinor(SageObject):
             alpha = -self._RootSystem._simple_roots[-sub-1]
         output = 0
         pairing = self._RootSystem.pairing(alpha,wt1)
-        if (sub > 0 and -pairing > 1) or (sub < 0 and pairing > 1):
-            print "You are probably about to fall into a trap.  The non-extremal vectors are coming!"
+        #if (sub > 0 and -pairing > 1) or (sub < 0 and pairing > 1):
+            #print "You are probably about to fall into a trap.  The non-extremal vectors are coming!"
             #print "weight=",self._RootSystem.weightify(wt1)
             #print "root=",alpha
             #print "pairing=",pairing
@@ -134,6 +140,25 @@ class SidestWeightMinor(SageObject):
             else:
                 output += self.generic_evaluation(working_list,wt1+j*alpha,wt2)*self._polygens[self._rank-sub-1]**(pairing+j)
         return output
+
+
+    def compare_constructions(self,glist):
+        """
+        Input: A list of g-vectors
+        Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
+                sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
+        """
+        self._cluster_seed.find_cluster_variables(glist_tofind=glist)
+        for gvect in glist:
+            cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
+            gen_minor = self.generic_evaluation(self._double_coxeter,self.g_to_weight(gvect))
+            if cl_minor == gen_minor:
+                print str(gvect)+": True"
+            else:
+                print str(gvect)+": False"
+                #print "  Cluster minor=",cl_minor
+                #print "  Generalized minor=",gen_minor
+                print "  Diff=",cl_minor-gen_minor
 
 
 
