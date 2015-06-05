@@ -114,7 +114,10 @@ class ClusterSeed2(SageObject):
         mutation_counter = 0
         ## the last check should be done more efficiently
         while mutation_counter < num_mutations and (glist_tofind == [] or not Set(glist_tofind).issubset(Set(self._F_dict.keys()))):
-            MCI.next()
+            try:
+                MCI.next()
+            except:
+                break
             mutation_counter += 1
         print "Found after "+str(mutation_counter)+" mutations."
 
@@ -185,7 +188,9 @@ class ClusterSeed2(SageObject):
             F_std = self._F[k].subs(self._yhat)
             F_trop = self._F[k].subs(self._y).denominator()
             return g_mon*F_std*F_trop
-        if isinstance(k,tuple) and k in self._F_dict.keys():
+        if isinstance(k,tuple):
+            if not k in self._F_dict.keys():
+                self.find_cluster_variables([k])
             g_mon = prod([self._R.gen(i)**k[i] for i in xrange(self._n)])
             F_std = self._F_dict[k].subs(self._yhat)
             F_trop = self._F_dict[k].subs(self._y).denominator()

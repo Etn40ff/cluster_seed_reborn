@@ -511,7 +511,7 @@ class TropicalClusterAlgebra(SageObject):
 
     @cached_method
     def _positive_classical_roots_in_finite_orbits(self):
-        if not self.is_affine(): 
+        if not self.is_affine():
             raise ValueError("Method defined only for affine algebras")
         rs = self.root_space()
         crs = rs.classical()
