@@ -36,6 +36,8 @@ class ClusterSeed2(SageObject):
         other._F = copy(self._F)
         other._F_dict = self._F_dict
         other._R = copy(self._R)
+        other._y = copy(self._y)
+        other._yhat = copy(self._yhat)
         return other
 
     
@@ -107,7 +109,17 @@ class ClusterSeed2(SageObject):
         return (pos+neg)//self._F[k]
 
 
-    def mutation_class_iter(self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False ):
+    def find_cluster_variables(self, glist_tofind=[], num_mutations=infinity):
+        MCI = self.mutation_class_iter()
+        mutation_counter = 0
+        ## the last check should be done more efficiently
+        while mutation_counter < num_mutations and (glist_tofind == [] or not Set(glist_tofind).issubset(Set(self._F_dict.keys()))):
+            MCI.next()
+            mutation_counter += 1
+        print "Found after "+str(mutation_counter)+" mutations."
+
+
+    def mutation_class_iter(self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False):
         depth_counter = 0
         n = self._n
         timer = time.time()
