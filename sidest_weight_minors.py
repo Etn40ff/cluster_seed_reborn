@@ -44,6 +44,7 @@ class SidestWeightMinor(SageObject):
 
         self._symm_mat = diagonal_matrix(self._B.is_skew_symmetrizable(return_diag=True))
         self._RootSystem = RootSystem(self._rank,self._Cartan_mat,self._symm_mat)
+        self._alpha = self._RootSystem._simple_roots
         self._coxeter = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
 
         self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
@@ -116,7 +117,9 @@ class SidestWeightMinor(SageObject):
         return tuple(coxeter)
 
 
-    def generic_evaluation(self,xlist,wt1,wt2=None,bad_flag=False):
+    def generic_evaluation(self,xlist,wt1,wt2=None,bad_flag=False,diff_root=None):
+        if diff_root == None:
+            diff_root = self._RootSystem._zero
         if wt2 == None:
             wt2 = copy(wt1)
         if xlist == []:
@@ -142,9 +145,10 @@ class SidestWeightMinor(SageObject):
             #print "pairing=",pairing
         for j in xrange(max(-pairing+1,1)):
             if sub > 0:
-                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2,bad_flag)*self._polygens[sub-1]**j
-            else:
-                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2,bad_flag)*self._polygens[self._rank-sub-1]**(pairing+j)
+                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2,bad_flag,diff_root+j*self._alpha[sub-1])*self._polygens[sub-1]**j
+            else: 
+                for i in xrange(2*diff_root[self._rank-sub-1]-wt1[-sub-1]):
+                    output += self.generic_evaluation(working_list,wt1+(j-i)*alpha,wt2,bad_flag,diff_root-j*self._alpha[-sub-1])*binomial(2*diff_root[self._rank-sub-1]-wt1[-sub-1],diff_root[self._rank-sub-1])*self._polygens[self._rank-sub-1]**(pairing+j+i) 
         return output
 
 

@@ -454,6 +454,9 @@ class RootSystem(SageObject):
                 equiv_weight += weight[self._rank+i]*self._cartan_matrix[j][i]*self._fundamental_weights[j]
         return equiv_weight
 
+
+    def zero(self):
+        return self._zero
     
 
     #TODO: Write a method for determining if a given matrix is an element of the Weyl group
