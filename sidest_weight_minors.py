@@ -66,6 +66,7 @@ class SidestWeightMinor(SageObject):
         for i in xrange(self._rank):
             coeff = self.generic_evaluation(self._double_coxeter,self._coxeter*self._w[i],self._w[i])
             temp_coeff.append(coeff)
+            print coeff
 
         self._coefficients = []
         for j in xrange(self._rank):
@@ -143,12 +144,20 @@ class SidestWeightMinor(SageObject):
             #print "weight=",self._RootSystem.weightify(wt1)
             #print "root=",alpha
             #print "pairing=",pairing
-        for j in xrange(max(-pairing+1,1)):
-            if sub > 0:
-                output += self.generic_evaluation(working_list,wt1+j*alpha,wt2,bad_flag,diff_root+j*self._alpha[sub-1])*self._polygens[sub-1]**j
-            else: 
-                for i in xrange(2*diff_root[self._rank-sub-1]-wt1[-sub-1]):
-                    output += self.generic_evaluation(working_list,wt1+(j-i)*alpha,wt2,bad_flag,diff_root-j*self._alpha[-sub-1])*binomial(2*diff_root[self._rank-sub-1]-wt1[-sub-1],diff_root[self._rank-sub-1])*self._polygens[self._rank-sub-1]**(pairing+j+i) 
+        if sub > 0:
+            for j in xrange(max(-pairing+1,1)):
+                start_wt = wt1+j*alpha
+                new_root = diff_root+j*alpha
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag,new_root)*self._polygens[sub-1]**j
+        else: 
+            for j in xrange(diff_root[self._rank-sub-1]):
+                print "wt1=",wt1
+                print "wt2=",wt2
+                print "diff=",diff_root
+                start_wt = wt1+j*alpha
+                new_root = diff_root+j*alpha
+                exp = pairing+j
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag,new_root)*self._polygens[self._rank-sub-1]**exp 
         return output
 
 
