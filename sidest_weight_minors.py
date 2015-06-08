@@ -66,7 +66,7 @@ class SidestWeightMinor(SageObject):
         for i in xrange(self._rank):
             coeff = self.generic_evaluation(self._double_coxeter,self._coxeter*self._w[i],self._w[i])
             temp_coeff.append(coeff)
-            print coeff
+            #print coeff
 
         self._coefficients = []
         for j in xrange(self._rank):
@@ -77,10 +77,24 @@ class SidestWeightMinor(SageObject):
                 else:
                     coeff *= temp_coeff[i]**self._Cartan_mat[i,j]
             self._coefficients.append(coeff)
+            #print self._coefficients
 
         clgens = self._cluster_seed._R.gens()
         self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
     
+
+    def diff_root(self,wt1,wt2):
+        """
+        Input: A pair of weights
+        Output: Their difference wt1-wt2 written as an element of the root lattice if possible, error otherwise.
+        """
+        if all(wt1[i]==wt2[i] for i in xrange(self._rank)):
+            return wt1-wt2
+        elif self._Cartan_mat.is_invertible():
+            raise NotImplementedError("This should be possible and easy.")
+        else:
+            raise NotImplementedError("This will be more work.")
+
 
     def g_to_weight(self,gvect):
         return sum([gvect[i]*self._w[i] for i in xrange(self._rank)])
@@ -118,9 +132,7 @@ class SidestWeightMinor(SageObject):
         return tuple(coxeter)
 
 
-    def generic_evaluation(self,xlist,wt1,wt2=None,bad_flag=False,diff_root=None):
-        if diff_root == None:
-            diff_root = self._RootSystem._zero
+    def generic_evaluation(self,xlist,wt1,wt2=None,bad_flag=False):
         if wt2 == None:
             wt2 = copy(wt1)
         if xlist == []:
@@ -144,20 +156,12 @@ class SidestWeightMinor(SageObject):
             #print "weight=",self._RootSystem.weightify(wt1)
             #print "root=",alpha
             #print "pairing=",pairing
-        if sub > 0:
-            for j in xrange(max(-pairing+1,1)):
-                start_wt = wt1+j*alpha
-                new_root = diff_root+j*alpha
-                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag,new_root)*self._polygens[sub-1]**j
-        else: 
-            for j in xrange(diff_root[self._rank-sub-1]):
-                print "wt1=",wt1
-                print "wt2=",wt2
-                print "diff=",diff_root
-                start_wt = wt1+j*alpha
-                new_root = diff_root+j*alpha
-                exp = pairing+j
-                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag,new_root)*self._polygens[self._rank-sub-1]**exp 
+        for j in xrange(max(-pairing+1,1)):
+            start_wt = wt1+j*alpha
+            if sub > 0:
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[sub-1]**j
+            else:
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[self._rank-sub-1]**(pairing+j)
         return output
 
 
