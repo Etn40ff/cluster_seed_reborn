@@ -58,8 +58,8 @@ class SidestWeightMinor(SageObject):
         extended_B = block_matrix([[self._B],[identity_matrix(self._rank)]])
         self._cluster_seed = ClusterSeed2(extended_B)
         self._salvo_cluster = TropicalClusterAlgebra(self._B)
-        self._regular_glist = flatten(self._salvo_cluster.affine_tubes())
-        self._regular_glist = map(lambda x: tuple(vector(self._salvo_cluster.to_weight(x))), self._regular_glist)
+        #self._regular_glist = flatten(self._salvo_cluster.affine_tubes())
+        #self._regular_glist = map(lambda x: tuple(vector(self._salvo_cluster.to_weight(x))), self._regular_glist)
 
         temp_coeff = []
         self._w = self._RootSystem._fundamental_weights
