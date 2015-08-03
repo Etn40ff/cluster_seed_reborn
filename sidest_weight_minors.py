@@ -164,6 +164,36 @@ class SidestWeightMinor(SageObject):
                 output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[self._rank-sub-1]**(pairing+j)
         return output
 
+    def generic_evaluation2(self, xlist, wt1, convex=None, wt2=None):
+        if convex == None:
+            W = list(self._RootSystem.get_Weyl_Group())
+            orbit = [ g*wt1 for g in W ]
+            convex = Polyhedron(vertices=orbit).integral_points()
+        if wt2 == None:
+            wt2 = copy(wt1)
+        if xlist == []:
+            if wt1 == wt2:
+                return 1
+            else:
+                return 0
+        working_list = copy(xlist)
+        sub = working_list.pop()
+        if sub > 0:
+            alpha = self._RootSystem._simple_roots[sub-1]
+        else:
+            alpha = -self._RootSystem._simple_roots[-sub-1]
+        output = 0
+        pairing = self._RootSystem.pairing(alpha,wt1)
+        j = 0
+        while wt1+j*alpha in convex:
+            start_wt = wt1+j*alpha
+            if sub > 0:
+                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[sub-1]**j
+            else:
+                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[self._rank-sub-1]**(pairing+j)
+            j += 1
+        return output
+
 
     def compare_constructions(self,glist):
         """
@@ -175,6 +205,24 @@ class SidestWeightMinor(SageObject):
         for gvect in glist:
             cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
             gen_minor = self.generic_evaluation(self._double_coxeter,self.g_to_weight(gvect))
+            if cl_minor == gen_minor:
+                print str(gvect)+": True"
+            else:
+                print str(gvect)+": False"
+                #print "  Cluster minor=",cl_minor
+                #print "  Generalized minor=",gen_minor
+                print "  Diff=",cl_minor-gen_minor
+
+    def compare_constructions2(self,glist):
+        """
+        Input: A list of g-vectors
+        Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
+                sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
+        """
+        self._cluster_seed.find_cluster_variables(glist_tofind=glist)
+        for gvect in glist:
+            cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
+            gen_minor = self.generic_evaluation2(self._double_coxeter,self.g_to_weight(gvect))
             if cl_minor == gen_minor:
                 print str(gvect)+": True"
             else:
