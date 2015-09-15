@@ -193,6 +193,7 @@ class SidestWeightMinor(SageObject):
 
     def affine_weight_multiplicity(self, highest_wt, wt):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
+        pass
 
     def validate_weight(self, highest_wt, alpha, wt, pairing):
         # check whether there is an ambiguity in the next step of generic_evaluation
@@ -212,6 +213,7 @@ class SidestWeightMinor(SageObject):
 
     def level_zero_dominant_conjugate(self, wt):
         # return the dominant Weyl conjugate weight of wt
+        pass
 
     def generic_evaluation3(self, xlist, wt1, wt2 = None, highest_wt = None):
         if highest_wt == None:
