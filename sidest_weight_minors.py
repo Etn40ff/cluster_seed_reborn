@@ -226,22 +226,22 @@ class SidestWeightMinor(SageObject):
             else:
                 return 0
         new_xlist = copy(xlist)
-        sub = new_xlist.pop()
-        if sub > 0:
-            alpha = self._RootSystem._simple_roots[sub-1]
-        else:
-            alpha = -self._RootSystem._simple_roots[-sub-1]
+        i, eps = new_xlist.pop()
+        alpha = eps * self._RootSystem._simple[i]
         pairing = self._RootSystem.pairing(alpha, wt1)
         self.validate_weight(highest_wt, alpha, wt1, pairing)
         output = 0
         j = 0
-        while self.affine_weight_multiplicity(wt1 + j*alpha) != 0:
-            new_wt1 = wt1 + j*alpha
-            if sub > 0:
-                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[sub-1]**j
+        new_wt1 = copy(wt1)
+        while self.affine_weight_multiplicity(new_wt1) != 0:
+            if eps > 0:
+                # this records the action of the matrix [[1,t],[0,1]]
+                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
             else:
-                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank-sub-1]**(pairing + j)
+                # this records the action of the matrix [[u^{-1},0],[1,u]] = [[1,0],[u,1]]*[[u^{-1},0],[0,u]]
+                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j)
             j += 1
+            new_wt1 += alpha
         return output
 
     def compare_constructions(self,glist):
