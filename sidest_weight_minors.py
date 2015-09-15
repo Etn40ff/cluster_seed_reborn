@@ -50,10 +50,10 @@ class SidestWeightMinor(SageObject):
         self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
         self._polygens = self._parameter_polynomial_ring.gens()
 
-        cox_rev = [i+1 for i in self._coxeter_word]
-        self._double_coxeter = [-i for i in cox_rev]
-        cox_rev.reverse()
-        self._double_coxeter += cox_rev
+        self._double_coxeter = [(i,-1) for i in self._coxeter_word]
+        cv = list(self._coxeter_word)
+        cv.reverse()
+        self._double_coxeter += [(i,1) for i in cv]
 
         extended_B = block_matrix([[self._B],[identity_matrix(self._rank)]])
         self._cluster_algebra = ClusterAlgebra(extended_B)
@@ -140,14 +140,11 @@ class SidestWeightMinor(SageObject):
             else:
                 return 0
         working_list = copy(xlist)
-        sub = working_list.pop()
-        if sub > 0:
-            alpha = self._RootSystem._simple_roots[sub-1]
-        else:
-            alpha = -self._RootSystem._simple_roots[-sub-1]
+        i,eps = working_list.pop()
+        alpha = eps * self._RootSystem._simple_roots[i]
         output = 0
         pairing = self._RootSystem.pairing(alpha,wt1)
-        if (sub > 0 and -pairing > 1) or (sub < 0 and pairing > 1):
+        if (eps > 0 and -pairing > 1) or (eps < 0 and pairing > 1):
             bad_flag = True
             #print "You are probably about to fall into a trap.  The non-extremal vectors are coming!"
             #print "weight=",self._RootSystem.weightify(wt1)
@@ -155,10 +152,10 @@ class SidestWeightMinor(SageObject):
             #print "pairing=",pairing
         for j in xrange(max(-pairing+1,1)):
             start_wt = wt1+j*alpha
-            if sub > 0:
-                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[sub-1]**j
+            if eps > 0:
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[i]**j
             else:
-                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[self._rank-sub-1]**(pairing+j)
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[self._rank+i]**(pairing+j)
         return output
 
     def generic_evaluation2(self, xlist, wt1, convex=None, wt2=None):
@@ -174,20 +171,17 @@ class SidestWeightMinor(SageObject):
             else:
                 return 0
         working_list = copy(xlist)
-        sub = working_list.pop()
-        if sub > 0:
-            alpha = self._RootSystem._simple_roots[sub-1]
-        else:
-            alpha = -self._RootSystem._simple_roots[-sub-1]
+        i,eps = working_list.pop()
+        alpha = eps * self._RootSystem._simple_roots[i]
         output = 0
         pairing = self._RootSystem.pairing(alpha,wt1)
         j = 0
         while wt1+j*alpha in convex:
             start_wt = wt1+j*alpha
-            if sub > 0:
-                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[sub-1]**j
+            if eps > 0:
+                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[i]**j
             else:
-                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[self._rank-sub-1]**(pairing+j)
+                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[self._rank+i]**(pairing+j)
             j += 1
         return output
 
