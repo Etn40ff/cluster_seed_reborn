@@ -3,7 +3,7 @@ class SidestWeightMinor(SageObject):
     def __init__(self, data, coxeter=None, mutation_type=None):
         data = copy(data)
 
-        if isinstance(data, Matrix):
+        if isinstance(data, type(Matrix())):
             if not data.is_skew_symmetrizable():
                 raise ValueError("The input must be a skew symmetrizable integer matrix")
             self._B = data
@@ -56,10 +56,7 @@ class SidestWeightMinor(SageObject):
         self._double_coxeter += cox_rev
 
         extended_B = block_matrix([[self._B],[identity_matrix(self._rank)]])
-        self._cluster_seed = ClusterSeed2(extended_B)
-        self._salvo_cluster = TropicalClusterAlgebra(self._B)
-        #self._regular_glist = flatten(self._salvo_cluster.affine_tubes())
-        #self._regular_glist = map(lambda x: tuple(vector(self._salvo_cluster.to_weight(x))), self._regular_glist)
+        self._cluster_algebra = ClusterAlgebra(extended_B)
 
         temp_coeff = []
         self._w = self._RootSystem._fundamental_weights
@@ -79,7 +76,7 @@ class SidestWeightMinor(SageObject):
             self._coefficients.append(coeff)
             #print self._coefficients
 
-        clgens = self._cluster_seed._R.gens()
+        clgens = self._cluster_algebra.ambient().gens()
         self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
     
 
@@ -251,9 +248,9 @@ class SidestWeightMinor(SageObject):
         Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
                 sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
         """
-        self._cluster_seed.find_cluster_variables(glist_tofind=glist)
         for gvect in glist:
-            cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
+            self._cluster_algebra.find_cluster_variable(gvect)
+            cl_minor = self._cluster_algebra.cluster_variable(gvect).lift().subs(self._initial_cluster)
             gen_minor = self.generic_evaluation(self._double_coxeter,self.g_to_weight(gvect))
             if cl_minor == gen_minor:
                 print str(gvect)+": True"
@@ -269,9 +266,9 @@ class SidestWeightMinor(SageObject):
         Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
                 sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
         """
-        self._cluster_seed.find_cluster_variables(glist_tofind=glist)
         for gvect in glist:
-            cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
+            self._cluster_algebra.find_cluster_variable(gvect)
+            cl_minor = self._cluster_algebra.cluster_variable(gvect).lift().subs(self._initial_cluster)
             gen_minor = self.generic_evaluation2(self._double_coxeter,self.g_to_weight(gvect))
             if cl_minor == gen_minor:
                 print str(gvect)+": True"
@@ -281,20 +278,3 @@ class SidestWeightMinor(SageObject):
                 #print "  Generalized minor=",gen_minor
                 print "  Diff=",cl_minor-gen_minor
 
-
-
-
-
-
-
-
-#def psi(self,i,eps):
-#    alpha = self.RootSystem.simple_root[i]
-#    if eps > 0:
-#        for j in xrange(i):
-#            alpha = self.RootSystem.simple_reflections[c[i-1-j]]*alpha
-#        return alpha
-#    else:
-#        for j in xrange(i+1,self._rank+1):
-#            alpha = self.RootSystem.simple_reflections[c[j]]*alpha
-#        return alpha
