@@ -3,7 +3,8 @@ class SidestWeightMinor(SageObject):
     def __init__(self, data, coxeter=None, mutation_type=None):
         data = copy(data)
 
-        if isinstance(data, type(Matrix())):
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(data):
             if not data.is_skew_symmetrizable():
                 raise ValueError("The input must be a skew symmetrizable integer matrix")
             self._B = data
