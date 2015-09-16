@@ -46,7 +46,7 @@ class SidestWeightMinor(SageObject):
         self._symm_mat = diagonal_matrix(self._B.is_skew_symmetrizable(return_diag=True))
         self._RootSystem = RootSystem(self._rank,self._Cartan_mat,self._symm_mat)
         self._alpha = self._RootSystem._simple_roots
-        self._coxeter = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
+        self._coxeter_element = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
 
         self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
         self._polygens = self._parameter_polynomial_ring.gens()
@@ -62,7 +62,7 @@ class SidestWeightMinor(SageObject):
         temp_coeff = []
         self._w = self._RootSystem._fundamental_weights
         for i in xrange(self._rank):
-            coeff = self.generic_evaluation(self._double_coxeter,self._coxeter*self._w[i],self._w[i])
+            coeff = self.generic_evaluation(self._double_coxeter,self._coxeter_element*self._w[i],self._w[i])
             temp_coeff.append(coeff)
             #print coeff
 
@@ -228,7 +228,7 @@ class SidestWeightMinor(SageObject):
                 return 0
         new_xlist = copy(xlist)
         i, eps = new_xlist.pop()
-        alpha = eps * self._RootSystem._simple[i]
+        alpha = eps * self._RootSystem._simple_roots[i]
         pairing = self._RootSystem.pairing(alpha, wt1)
         self.validate_weight(highest_wt, alpha, wt1, pairing)
         output = 0
