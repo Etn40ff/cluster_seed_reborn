@@ -36,7 +36,19 @@ class LevelZeroMinor(SageObject):
             root = self._RootSystem._fundamental_weights[i]-self._coxeter_element*self._RootSystem._fundamental_weights[i]
             coeff = self._polygens[self._rank+i]**(-1)*prod([self._polygens[j]**root[self._rank+1+j] for j in xrange(self._rank)]) 
             temp_coeff.append(coeff)
-            print coeff
+
+        self._coefficients = []
+        for j in xrange(self._rank):
+            coeff = temp_coeff[j]
+            for i in self._coxeter_word:
+                if i == j:
+                    break
+                else:
+                    coeff *= temp_coeff[i]**self._ext_Cartan_mat[i,j]
+            self._coefficients.append(coeff)
+
+        clgens = self._cluster_algebra.ambient().gens()
+        self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
 
     def coxeter(self):
         r"""
