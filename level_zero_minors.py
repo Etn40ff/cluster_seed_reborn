@@ -11,8 +11,8 @@ class LevelZeroMinor(SageObject):
         self._B = copy(b_matrix)
         self._rank = self._B.ncols()
         self._ext_Cartan_mat = block_diagonal_matrix(2-matrix(self._rank,map(abs,self._B.list())),matrix(1))
-        self._ext_Cartan_mat[0,self._rank+1] = 1
-        self._ext_Cartan_mat[self._rank+1,0] = 1
+        self._ext_Cartan_mat[0,self._rank] = 1
+        self._ext_Cartan_mat[self._rank,0] = 1
         self._coxeter_word = self.coxeter()
 
         self._ext_symm_mat = diagonal_matrix(self._ext_Cartan_mat.is_symmetrizable(return_diag=True))
@@ -33,7 +33,7 @@ class LevelZeroMinor(SageObject):
 
         temp_coeff = []
         for i in xrange(self._rank):
-            root = self._RootSystem.fundamental_weights[i]-self._coxeter_element*self._RootSystem._fundamental_weights[i]
+            root = self._RootSystem._fundamental_weights[i]-self._coxeter_element*self._RootSystem._fundamental_weights[i]
             coeff = self._polygens[self._rank+i]**(-1)*prod([self._polygens[j]**root[self._rank+1+j] for j in xrange(self._rank)]) 
             temp_coeff.append(coeff)
             print coeff
