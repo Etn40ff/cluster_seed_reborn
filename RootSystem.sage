@@ -25,11 +25,11 @@ class RootSystem(SageObject):
         .cuspidal_decomposition
         .decompose_root
         .Euler_Ringel_pairing
-        .get_fundamental_weights
-        .get_simple_coroots
-        .get_simple_reflections
-        .get_simple_roots
-        .get_Weyl_Group
+        .fundamental_weights
+        .simple_coroots
+        .simple_reflections
+        .simple_roots
+        .Weyl_Group
         .height
         .is_decreasing_cuspidal
         .is_dominant
@@ -46,18 +46,18 @@ class RootSystem(SageObject):
         .weightify
     """
     
-    def __init__(self, n, M, D):
+    def __init__(self, n, A, D):
         """
         INPUT:
             n - the rank of the root system
-            M - symmetrizable generalized Cartan matrix
+            A - symmetrizable generalized Cartan matrix
             D - diagonal matrix so that DM is symmetric
         """
         #Initialize the combinatorial data
         self._rank = n
-        self._cartan_matrix = M
+        self._cartan_matrix = CartanMatrix(A)
         self._symmetrizing_matrix = D
-        self._symmetric_cartan_matrix = D*M
+        self._symmetric_cartan_matrix = D*A
 
         #Initialize the lattice data
         self._ambient_space = VectorSpace(QQ,2*self._rank)
@@ -93,8 +93,48 @@ class RootSystem(SageObject):
             self._simple_reflections.append(identity_matrix(QQ,2*self._rank)-matrix(QQ,M))
         self._Weyl_group = MatrixGroup(self._simple_reflections)
         
+        self._ambient_char_ring = LaurentPolynomialRing(ZZ, 'e', self._rank)
         
         self._description = "The root system associated to the symmetrizable Cartan matrix %s with symmetrizing matrix %s"%(self._cartan_matrix.str(),self._symmetrizing_matrix.str())
+
+
+    @property
+    def rho(self):
+        return sum(self.fundamental_weights())
+
+
+    def is_finite(self):
+        ct = self._cartan_matrix.cartan_type()
+        if type(ct[0]) == str and len(ct) == 2:
+            return true
+        return false 
+        
+    
+    def character_monomial(self, weight):
+        return prod([self._ambient_char_ring.gen(i)**self.weightify(weight)[i] for i in xrange(self._rank)])
+
+
+    def Weyl_character_formula(self, highest_weight):
+        ct = self._cartan_matrix.cartan_type()
+        if not self.is_finite():
+            raise NotImplementedError("This root system is not finite and the Weyl character formula does not apply.")
+        numer = self._ambient_char_ring(0)
+        denom = self._ambient_char_ring(0)
+        for w in self._Weyl_group:
+            num_exp = w*(highest_weight+self.rho)
+            den_exp = w*self.rho
+            numer += self._Weyl_group.matrix_space()(w).determinant()*self.character_monomial(num_exp)
+            denom += self._Weyl_group.matrix_space()(w).determinant()*self.character_monomial(den_exp)
+        return numer/denom
+
+
+    def weight_multiplicity(self, highest_weight, weight):
+        character = self.Weyl_character_formula(highest_weight)
+        numer = character.numerator()
+        denom = character.denominator()
+        denom_exp = sum([denom._mpoly_dict_recursive().keys()[0][i]*self.fundamental_weight(i) for i in xrange(self._rank)])
+        numer_exp = weight + denom_exp 
+        return self._ambient_char_ring(numer).coefficient(self.character_monomial(numer_exp))/self._ambient_char_ring(denom).coefficient(self.character_monomial(denom_exp))
 
 
     def braid_action(self, i, seq):
@@ -104,9 +144,9 @@ class RootSystem(SageObject):
         """
         temp = copy(seq)
         if i > 0:
-            new_root = R.reflection_across(seq[i])*seq[i-1]
+            new_root = self.reflection_across(seq[i])*seq[i-1]
         if i < 0:
-            new_root = R.reflection_across(seq[-i-1])*seq[-i]
+            new_root = self.reflection_across(seq[-i-1])*seq[-i]
         neg_switch = false
         for j in range(0,2*self._rank):
             if new_root[j] < 0:
@@ -220,23 +260,39 @@ class RootSystem(SageObject):
         return output
 
     
-    def get_fundamental_weights(self):
+    def fundamental_weight(self, i):
+        return self._fundamental_weights[i]
+
+    
+    def fundamental_weights(self):
         return self._fundamental_weights
 
     
-    def get_simple_coroots(self):
+    def simple_coroot(self, i):
+        return self._simple_coroots[i]
+
+    
+    def simple_coroots(self):
         return self._simple_coroots
 
     
-    def get_simple_reflections(self):
+    def simple_reflection(self, i):
+        return self._simple_reflections[i]
+
+    
+    def simple_reflections(self):
         return self._simple_reflections
 
     
-    def get_simple_roots(self):
+    def simple_root(self, i):
+        return self._simple_roots[i]
+
+    
+    def simple_roots(self):
         return self._simple_roots
 
     
-    def get_Weyl_Group(self):
+    def Weyl_Group(self):
         return self._Weyl_group
 
 
@@ -454,9 +510,6 @@ class RootSystem(SageObject):
                 equiv_weight += weight[self._rank+i]*self._cartan_matrix[j][i]*self._fundamental_weights[j]
         return equiv_weight
 
-
-    def zero(self):
-        return self._zero
     
 
     #TODO: Write a method for determining if a given matrix is an element of the Weyl group

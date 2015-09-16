@@ -8,18 +8,18 @@ class SidestWeightMinor(SageObject):
                 raise ValueError("The input must be a skew symmetrizable integer matrix")
             self._B = data
             self._rank = self._B.ncols()
-            self._Cartan_mat = 2-matrix(self._rank,map(abs,self._B.list()))
+            self._Cartan_mat = CartanMatrix(2-matrix(self._rank,map(abs,self._B.list())))
             self._coxeter_word = self.coxeter()
-        
+
         elif isinstance(data, CartanType_abstract):
             self._rank = data.rank()
-            
+
             if Set(data.index_set()) != Set(range(self._rank)):
                 relabelling = dict(zip(data.index_set(),range(self._rank)))
                 data = data.relabel(relabelling)
 
             self._Cartan_mat = data.cartan_matrix()
-            
+
             if coxeter==None:
                 coxeter = range(self._rank)
             if Set(coxeter) != Set(data.index_set()):
@@ -38,7 +38,7 @@ class SidestWeightMinor(SageObject):
 
         elif type(data)==list:
             self.__init__(CartanType(data), coxeter=coxeter, depth=depth)
-        
+
         else:
             raise ValueError("Input is not valid")
 
@@ -56,10 +56,12 @@ class SidestWeightMinor(SageObject):
         self._double_coxeter += cox_rev
 
         extended_B = block_matrix([[self._B],[identity_matrix(self._rank)]])
-        self._cluster_seed = ClusterSeed2(extended_B)
-        self._salvo_cluster = TropicalClusterAlgebra(self._B)
+        self._cluster_seed = ClusterAlgebra(extended_B)
+        #self._salvo_cluster = TropicalClusterAlgebra(self._B)
         #self._regular_glist = flatten(self._salvo_cluster.affine_tubes())
         #self._regular_glist = map(lambda x: tuple(vector(self._salvo_cluster.to_weight(x))), self._regular_glist)
+        ct = self._Cartan_mat.cartan_type()[0]+str(self._Cartan_mat.cartan_type()[1])
+        self._CharacterRing = WeylCharacterRing(ct, style="coroots")
 
         temp_coeff = []
         self._w = self._RootSystem._fundamental_weights
@@ -79,9 +81,9 @@ class SidestWeightMinor(SageObject):
             self._coefficients.append(coeff)
             #print self._coefficients
 
-        clgens = self._cluster_seed._R.gens()
+        clgens = self._cluster_seed._ambient.gens()
         self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
-    
+
 
     def diff_root(self,wt1,wt2):
         """
