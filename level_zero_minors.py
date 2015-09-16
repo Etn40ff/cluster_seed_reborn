@@ -19,7 +19,7 @@ class LevelZeroMinor(SageObject):
         self._ext_symm_mat *= self._ext_symm_mat.denominator()
         self._RootSystem = RootSystem(self._rank+1,self._ext_Cartan_mat,self._ext_symm_mat)
 
-        # create Coxeter word and element
+        # create Coxeter words and element
         self._coxeter_word = self.coxeter()
         self._coxeter_element = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
         self._double_coxeter = [(i,-1) for i in self._coxeter_word]
@@ -27,22 +27,21 @@ class LevelZeroMinor(SageObject):
         cv.reverse()
         self._double_coxeter += [(i,1) for i in cv]
 
-
+        # create ambient polynomial ring
         self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
         self._polygens = self._parameter_polynomial_ring.gens()
-
 
         # create cluster algebra with principal coefficients
         self._cluster_algebra = ClusterAlgebra(block_matrix([[self._B],[identity_matrix(self._rank)]]))
 
+        # compute generic evaluations of principal coefficients
+        self._coefficients = []
         temp_coeff = []
         for i in xrange(self._rank):
             # next two lines depend on the implementation of weights by RootSystem
             root = self._RootSystem._fundamental_weights[i]-self._coxeter_element*self._RootSystem._fundamental_weights[i]
             coeff = self._polygens[self._rank+i]**(-1)*prod([self._polygens[j]**root[self._rank+1+j] for j in xrange(self._rank)]) 
             temp_coeff.append(coeff)
-
-        self._coefficients = []
         for j in xrange(self._rank):
             coeff = temp_coeff[j]
             for i in self._coxeter_word:
@@ -52,6 +51,7 @@ class LevelZeroMinor(SageObject):
                     coeff *= temp_coeff[i]**self._ext_Cartan_mat[i,j]
             self._coefficients.append(coeff)
 
+        # specify cluster variables to generalized minors
         clgens = self._cluster_algebra.ambient().gens()
         self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
 
