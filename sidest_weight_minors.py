@@ -3,7 +3,8 @@ class SidestWeightMinor(SageObject):
     def __init__(self, data, coxeter=None, mutation_type=None):
         data = copy(data)
 
-        if isinstance(data, Matrix):
+        from sage.matrix.matrix import is_Matrix
+        if is_Matrix(data):
             if not data.is_skew_symmetrizable():
                 raise ValueError("The input must be a skew symmetrizable integer matrix")
             self._B = data
@@ -45,28 +46,23 @@ class SidestWeightMinor(SageObject):
         self._symm_mat = diagonal_matrix(self._B.is_skew_symmetrizable(return_diag=True))
         self._RootSystem = RootSystem(self._rank,self._Cartan_mat,self._symm_mat)
         self._alpha = self._RootSystem._simple_roots
-        self._coxeter = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
+        self._coxeter_element = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
 
         self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
         self._polygens = self._parameter_polynomial_ring.gens()
 
-        cox_rev = [i+1 for i in self._coxeter_word]
-        self._double_coxeter = [-i for i in cox_rev]
-        cox_rev.reverse()
-        self._double_coxeter += cox_rev
+        self._double_coxeter = [(i,-1) for i in self._coxeter_word]
+        cv = list(self._coxeter_word)
+        cv.reverse()
+        self._double_coxeter += [(i,1) for i in cv]
 
         extended_B = block_matrix([[self._B],[identity_matrix(self._rank)]])
-        self._cluster_seed = ClusterAlgebra(extended_B)
-        #self._salvo_cluster = TropicalClusterAlgebra(self._B)
-        #self._regular_glist = flatten(self._salvo_cluster.affine_tubes())
-        #self._regular_glist = map(lambda x: tuple(vector(self._salvo_cluster.to_weight(x))), self._regular_glist)
-        ct = self._Cartan_mat.cartan_type()[0]+str(self._Cartan_mat.cartan_type()[1])
-        self._CharacterRing = WeylCharacterRing(ct, style="coroots")
+        self._cluster_algebra = ClusterAlgebra(extended_B)
 
         temp_coeff = []
         self._w = self._RootSystem._fundamental_weights
         for i in xrange(self._rank):
-            coeff = self.generic_evaluation(self._double_coxeter,self._coxeter*self._w[i],self._w[i])
+            coeff = self.generic_evaluation(self._double_coxeter,self._coxeter_element*self._w[i],self._w[i])
             temp_coeff.append(coeff)
             #print coeff
 
@@ -81,7 +77,7 @@ class SidestWeightMinor(SageObject):
             self._coefficients.append(coeff)
             #print self._coefficients
 
-        clgens = self._cluster_seed._ambient.gens()
+        clgens = self._cluster_algebra.ambient().gens()
         self._initial_cluster = dict([(clgens[i],self._polygens[self._rank+i]**(-1)) for i in xrange(self._rank)]+[(clgens[self._rank+i],self._coefficients[i]) for i in xrange(self._rank)])
 
 
@@ -145,14 +141,11 @@ class SidestWeightMinor(SageObject):
             else:
                 return 0
         working_list = copy(xlist)
-        sub = working_list.pop()
-        if sub > 0:
-            alpha = self._RootSystem._simple_roots[sub-1]
-        else:
-            alpha = -self._RootSystem._simple_roots[-sub-1]
+        i,eps = working_list.pop()
+        alpha = eps * self._RootSystem._simple_roots[i]
         output = 0
         pairing = self._RootSystem.pairing(alpha,wt1)
-        if (sub > 0 and -pairing > 1) or (sub < 0 and pairing > 1):
+        if (eps > 0 and -pairing > 1) or (eps < 0 and pairing > 1):
             bad_flag = True
             #print "You are probably about to fall into a trap.  The non-extremal vectors are coming!"
             #print "weight=",self._RootSystem.weightify(wt1)
@@ -160,10 +153,10 @@ class SidestWeightMinor(SageObject):
             #print "pairing=",pairing
         for j in xrange(max(-pairing+1,1)):
             start_wt = wt1+j*alpha
-            if sub > 0:
-                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[sub-1]**j
+            if eps > 0:
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[i]**j
             else:
-                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[self._rank-sub-1]**(pairing+j)
+                output += self.generic_evaluation(working_list,start_wt,wt2,bad_flag)*self._polygens[self._rank+i]**(pairing+j)
         return output
 
     def generic_evaluation2(self, xlist, wt1, convex=None, wt2=None):
@@ -179,23 +172,78 @@ class SidestWeightMinor(SageObject):
             else:
                 return 0
         working_list = copy(xlist)
-        sub = working_list.pop()
-        if sub > 0:
-            alpha = self._RootSystem._simple_roots[sub-1]
-        else:
-            alpha = -self._RootSystem._simple_roots[-sub-1]
+        i,eps = working_list.pop()
+        alpha = eps * self._RootSystem._simple_roots[i]
         output = 0
         pairing = self._RootSystem.pairing(alpha,wt1)
         j = 0
         while wt1+j*alpha in convex:
             start_wt = wt1+j*alpha
-            if sub > 0:
-                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[sub-1]**j
+            if eps > 0:
+                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[i]**j
             else:
-                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[self._rank-sub-1]**(pairing+j)
+                output += self.generic_evaluation2(working_list,start_wt,convex=convex,wt2=wt2)*self._polygens[self._rank+i]**(pairing+j)
             j += 1
         return output
 
+    def affine_weight_multiplicity(self, highest_wt, wt):
+        # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
+        pass
+
+    def validate_weight(self, xlist, wt1, wt2, highest_wt, alpha, pairing):
+        # check whether there is an ambiguity in the next step of generic_evaluation
+        if pairing >= 0:
+            outward_alpha = alpha
+        else:
+            outward_alpha = -alpha
+        current_wt = copy(wt1)
+        current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
+        initial_wt_mult = current_wt_mult
+        while current_wt_mult != 0:
+            if current_wt_mult < initial_wt_mult:
+                print "There was an ambiguity."
+                print "initial_wt_mult = ", initial_wt_mult
+                print "current_wt_mult = ", current_wt_mult
+                print "current_wt = ", current_wt
+                print "alpha = ", alpha
+                print "xlist = ", xlist
+                print "wt1 = ", wt1
+                print "wt2 = ", wt2
+            current_wt += outward_alpha
+            current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
+
+    def level_zero_dominant_conjugate(self, wt):
+        # return the dominant Weyl conjugate weight of wt
+        pass
+
+    def generic_evaluation3(self, xlist, wt1, wt2 = None, highest_wt = None):
+        if highest_wt == None:
+            highest_wt = level_zero_dominant_conjugate(wt1)
+        if wt2 == None:
+            wt2 = copy(wt1)
+        if xlist == []:
+            if wt1 == wt2:
+                return 1
+            else:
+                return 0
+        new_xlist = copy(xlist)
+        i, eps = new_xlist.pop()
+        alpha = eps * self._RootSystem._simple_roots[i]
+        pairing = self._RootSystem.pairing(alpha, wt1)
+        self.validate_weight(highest_wt, alpha, wt1, pairing)
+        output = 0
+        j = 0
+        new_wt1 = copy(wt1)
+        while self.affine_weight_multiplicity(new_wt1) != 0:
+            if eps > 0:
+                # this records the action of the matrix [[1,t],[0,1]]
+                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
+            else:
+                # this records the action of the matrix [[u^{-1},0],[1,u]] = [[1,0],[u,1]]*[[u^{-1},0],[0,u]]
+                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j)
+            j += 1
+            new_wt1 += alpha
+        return output
 
     def compare_constructions(self,glist):
         """
@@ -203,9 +251,9 @@ class SidestWeightMinor(SageObject):
         Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
                 sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
         """
-        self._cluster_seed.find_cluster_variables(glist_tofind=glist)
         for gvect in glist:
-            cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
+            self._cluster_algebra.find_cluster_variable(gvect)
+            cl_minor = self._cluster_algebra.cluster_variable(gvect).lift().subs(self._initial_cluster)
             gen_minor = self.generic_evaluation(self._double_coxeter,self.g_to_weight(gvect))
             if cl_minor == gen_minor:
                 print str(gvect)+": True"
@@ -221,9 +269,9 @@ class SidestWeightMinor(SageObject):
         Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
                 sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
         """
-        self._cluster_seed.find_cluster_variables(glist_tofind=glist)
         for gvect in glist:
-            cl_minor = self._cluster_seed.cluster_variable(gvect).subs(self._initial_cluster)
+            self._cluster_algebra.find_cluster_variable(gvect)
+            cl_minor = self._cluster_algebra.cluster_variable(gvect).lift().subs(self._initial_cluster)
             gen_minor = self.generic_evaluation2(self._double_coxeter,self.g_to_weight(gvect))
             if cl_minor == gen_minor:
                 print str(gvect)+": True"
@@ -233,20 +281,3 @@ class SidestWeightMinor(SageObject):
                 #print "  Generalized minor=",gen_minor
                 print "  Diff=",cl_minor-gen_minor
 
-
-
-
-
-
-
-
-#def psi(self,i,eps):
-#    alpha = self.RootSystem.simple_root[i]
-#    if eps > 0:
-#        for j in xrange(i):
-#            alpha = self.RootSystem.simple_reflections[c[i-1-j]]*alpha
-#        return alpha
-#    else:
-#        for j in xrange(i+1,self._rank+1):
-#            alpha = self.RootSystem.simple_reflections[c[j]]*alpha
-#        return alpha
