@@ -190,21 +190,27 @@ class SidestWeightMinor(SageObject):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
         pass
 
-    def validate_weight(self, highest_wt, alpha, wt, pairing):
+    def validate_weight(self, xlist, wt1, wt2, highest_wt, alpha, pairing):
         # check whether there is an ambiguity in the next step of generic_evaluation
         if pairing >= 0:
             outward_alpha = alpha
         else:
             outward_alpha = -alpha
-        current_wt = copy(wt)
+        current_wt = copy(wt1)
         current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
         initial_wt_mult = current_wt_mult
         while current_wt_mult != 0:
             if current_wt_mult < initial_wt_mult:
-                print "There was an ambiguity"
-                break
+                print "There was an ambiguity."
+                print "initial_wt_mult = ", initial_wt_mult
+                print "current_wt_mult = ", current_wt_mult
+                print "current_wt = ", current_wt
+                print "alpha = ", alpha
+                print "xlist = ", xlist
+                print "wt1 = ", wt1
+                print "wt2 = ", wt2
             current_wt += outward_alpha
-            current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)            
+            current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
 
     def level_zero_dominant_conjugate(self, wt):
         # return the dominant Weyl conjugate weight of wt
