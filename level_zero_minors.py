@@ -10,23 +10,27 @@ class LevelZeroMinor(SageObject):
             raise ValueError("The input must be a skew symmetrizable integer matrix")
         self._B = copy(b_matrix)
         self._rank = self._B.ncols()
+
+        # create extended affine root system
         self._ext_Cartan_mat = block_diagonal_matrix(2-matrix(self._rank,map(abs,self._B.list())),matrix(1))
         self._ext_Cartan_mat[0,self._rank] = 1
         self._ext_Cartan_mat[self._rank,0] = 1
-        self._coxeter_word = self.coxeter()
-
         self._ext_symm_mat = diagonal_matrix(self._ext_Cartan_mat.is_symmetrizable(return_diag=True))
         self._ext_symm_mat *= self._ext_symm_mat.denominator()
         self._RootSystem = RootSystem(self._rank+1,self._ext_Cartan_mat,self._ext_symm_mat)
+
+        # create Coxeter word and element
+        self._coxeter_word = self.coxeter()
         self._coxeter_element = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
-
-        self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
-        self._polygens = self._parameter_polynomial_ring.gens()
-
         self._double_coxeter = [(i,-1) for i in self._coxeter_word]
         cv = list(self._coxeter_word)
         cv.reverse()
         self._double_coxeter += [(i,1) for i in cv]
+
+
+        self._parameter_polynomial_ring = PolynomialRing(QQ,['t%s'%i for i in xrange(self._rank)]+['u%s'%i for i in xrange(self._rank)])
+        self._polygens = self._parameter_polynomial_ring.gens()
+
 
         # create cluster algebra with principal coefficients
         self._cluster_algebra = ClusterAlgebra(block_matrix([[self._B],[identity_matrix(self._rank)]]))
@@ -109,12 +113,12 @@ class LevelZeroMinor(SageObject):
             current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
 
     def level_zero_dominant_conjugate(self, wt):
-        # return the dominant Weyl conjugate weight of wt
+        # wt is an element of the finite-type weight subspace of the affine weight space
         pass
 
     def generic_evaluation3(self, xlist, wt1, wt2 = None, highest_wt = None):
         if highest_wt == None:
-            highest_wt = level_zero_dominant_conjugate(wt1)
+            highest_wt = level_zero_dominant_conjugate(wt2)
         if wt2 == None:
             wt2 = copy(wt1)
         if xlist == []:
@@ -130,7 +134,7 @@ class LevelZeroMinor(SageObject):
         output = 0
         j = 0
         new_wt1 = copy(wt1)
-        while self.affine_weight_multiplicity(new_wt1) != 0:
+        while self.affine_weight_multiplicity(highest_wt, new_wt1) != 0:
             if eps > 0:
                 # this records the action of the matrix [[1,t],[0,1]]
                 output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
