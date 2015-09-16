@@ -55,7 +55,7 @@ class RootSystem(SageObject):
         """
         #Initialize the combinatorial data
         self._rank = n
-        self._cartan_matrix = CartanMatrix(A)
+        self._cartan_matrix = A
         self._symmetrizing_matrix = D
         self._symmetric_cartan_matrix = D*A
 
@@ -115,8 +115,7 @@ class RootSystem(SageObject):
 
 
     def Weyl_character_formula(self, highest_weight):
-        ct = self._cartan_matrix.cartan_type()
-        if not self.is_finite():
+        if not self.Weyl_group().is_finite():
             raise NotImplementedError("This root system is not finite and the Weyl character formula does not apply.")
         numer = self._ambient_char_ring(0)
         denom = self._ambient_char_ring(0)
@@ -133,8 +132,8 @@ class RootSystem(SageObject):
         numer = character.numerator()
         denom = character.denominator()
         denom_exp = sum([denom._mpoly_dict_recursive().keys()[0][i]*self.fundamental_weight(i) for i in xrange(self._rank)])
-        numer_exp = weight + denom_exp 
-        return self._ambient_char_ring(numer).coefficient(self.character_monomial(numer_exp))/self._ambient_char_ring(denom).coefficient(self.character_monomial(denom_exp))
+        exp = weight + denom_exp 
+        return self._ambient_char_ring(numer).coefficient(self.character_monomial(exp))/self._ambient_char_ring(denom).coefficient(self.character_monomial(denom_exp))
 
 
     def braid_action(self, i, seq):
@@ -292,7 +291,7 @@ class RootSystem(SageObject):
         return self._simple_roots
 
     
-    def Weyl_Group(self):
+    def Weyl_group(self):
         return self._Weyl_group
 
 
