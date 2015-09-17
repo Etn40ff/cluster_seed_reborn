@@ -101,12 +101,8 @@ class LevelZeroMinor(SageObject):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
         return self._sub_RootSystem.weight_multiplicity(highest_wt,self.truncate_weight(wt))
 
-    def validate_weight(self, xlist, wt1, wt2, highest_wt, alpha, pairing):
+    def validate_weight(self, xlist, wt1, wt2, highest_wt, alpha):
         # check whether there is an ambiguity in the next step of generic_evaluation
-        if pairing >= 0:
-            outward_alpha = alpha
-        else:
-            outward_alpha = -alpha
         current_wt = copy(wt1)
         current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
         initial_wt_mult = current_wt_mult
@@ -120,8 +116,22 @@ class LevelZeroMinor(SageObject):
                 print "xlist = ", xlist
                 print "wt1 = ", wt1
                 print "wt2 = ", wt2
-            current_wt += outward_alpha
+            current_wt += alpha
             current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
+
+    def alpha_string(self, wt, highest_wt, alpha):
+        #determines the length of the alpha string containing wt
+        #might fail if validate_weight gives a complaint
+        current_wt = copy(wt)
+        current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
+        initial_wt_mult = current_wt_mult
+        num_steps = 0
+        while current_wt_mult != 0:
+            current_wt += alpha
+            num_steps += 1
+            current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
+        string_length = self._RootSystem.pairing(alpha,current_wt)
+        return (num_steps,string_length)
 
     def level_zero_dominant_conjugate(self, wt):
         # wt is an element of the finite-type weight subspace of the affine weight space
@@ -147,17 +157,18 @@ class LevelZeroMinor(SageObject):
         i, eps = new_xlist.pop()
         alpha = eps * self._RootSystem._simple_roots[i]
         pairing = self._RootSystem.pairing(alpha, wt1)
-        self.validate_weight(xlist, wt1, wt2, highest_wt, alpha, pairing)
+        self.validate_weight(xlist, wt1, wt2, highest_wt, sign(pairing)*alpha if pairing != 0 else alpha)
         output = 0
         j = 0
         new_wt1 = copy(wt1)
         while self.level_zero_weight_multiplicity(highest_wt, new_wt1) != 0:
             if eps > 0:
+                k,n = self.alpha_string(wt1,highest_weight,alpha)
                 # this records the action of the matrix [[1,t],[0,1]]
-                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
+                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j * binomial(k,k-j) * factorial(n-k+j) / factorial(n-k)
             else:
                 # this records the action of the matrix [[u^{-1},0],[1,u]] = [[1,0],[u,1]]*[[u^{-1},0],[0,u]]
-                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j)
+                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j) / factorial(j)
             j += 1
             new_wt1 += alpha
         return output
