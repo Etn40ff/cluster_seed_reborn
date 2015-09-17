@@ -133,7 +133,7 @@ class RootSystem(SageObject):
         denom = character.denominator()
         denom_exp = sum([denom._mpoly_dict_recursive().keys()[0][i]*self.fundamental_weight(i) for i in xrange(self._rank)])
         exp = weight + denom_exp 
-        return self._ambient_char_ring(numer).coefficient(self.character_monomial(exp))/self._ambient_char_ring(denom).coefficient(self.character_monomial(denom_exp))
+        return self._ambient_char_ring(numer).monomial_coefficient(self.character_monomial(exp))/self._ambient_char_ring(denom).monomial_coefficient(self.character_monomial(denom_exp))
 
 
     def braid_action(self, i, seq):
