@@ -91,6 +91,9 @@ class LevelZeroMinor(SageObject):
             source = None
         return tuple(coxeter)
 
+    def g_to_weight(self,gvect):
+        return sum([gvect[i]*self._RootSystem.fundamental_weight(i) for i in xrange(self._rank)])
+
     def truncate_weight(self,wt):
         return sum([self._RootSystem.weightify(wt)[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
 
