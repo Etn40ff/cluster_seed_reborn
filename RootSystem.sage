@@ -336,7 +336,7 @@ class RootSystem(SageObject):
         Input: A weight, i.e. weight[i]=0 for i in range(self._rank,2*self._rank)
                possibly after identification modulo the kernel of the natural pairing
         """
-        equiv_weight = weightify(weight)
+        equiv_weight = self.weightify(weight)
         for i in range(0,self._rank):
             if equiv_weight[i] < 0:
                 return False
