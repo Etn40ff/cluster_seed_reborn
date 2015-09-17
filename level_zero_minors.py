@@ -163,7 +163,7 @@ class LevelZeroMinor(SageObject):
         new_wt1 = copy(wt1)
         while self.level_zero_weight_multiplicity(highest_wt, new_wt1) != 0:
             if eps > 0:
-                k,n = self.alpha_string(wt1,highest_weight,alpha)
+                k,n = self.alpha_string(wt1,highest_wt,alpha)
                 # this records the action of the matrix [[1,t],[0,1]]
                 output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j * binomial(k,k-j) * factorial(n-k+j) / factorial(n-k)
             else:
