@@ -97,6 +97,8 @@ class RootSystem(SageObject):
         
         self._description = "The root system associated to the symmetrizable Cartan matrix %s with symmetrizing matrix %s"%(self._cartan_matrix.str(),self._symmetrizing_matrix.str())
 
+        self._characters = dict()
+
 
     @property
     def rho(self):
@@ -115,6 +117,8 @@ class RootSystem(SageObject):
 
 
     def Weyl_character_formula(self, highest_weight):
+        if self._characters.has_key(highest_weight):
+            return self._characters[highest_weight]
         if not self.Weyl_group().is_finite():
             raise NotImplementedError("This root system is not finite and the Weyl character formula does not apply.")
         numer = self._ambient_char_ring(0)
@@ -124,7 +128,8 @@ class RootSystem(SageObject):
             den_exp = w*self.rho
             numer += self._Weyl_group.matrix_space()(w).determinant()*self.character_monomial(num_exp)
             denom += self._Weyl_group.matrix_space()(w).determinant()*self.character_monomial(den_exp)
-        return numer/denom
+        self._characters[highest_weight] = numer/denom
+        return self._characters[highest_weight]
 
 
     def weight_multiplicity(self, highest_weight, weight):
