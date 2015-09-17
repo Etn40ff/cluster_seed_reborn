@@ -128,7 +128,7 @@ class LevelZeroMinor(SageObject):
                 return self._sub_RootSystem.weightify(Weyl_wt)
         return self._sub_RootSystem._zero()
 
-    def generic_evaluation3(self, xlist, wt1, wt2 = None, highest_wt = None):
+    def generic_evaluation(self, xlist, wt1, wt2 = None, highest_wt = None):
         if highest_wt == None:
             highest_wt = level_zero_dominant_conjugate(wt2)
         if wt2 == None:
@@ -149,11 +149,29 @@ class LevelZeroMinor(SageObject):
         while self.affine_weight_multiplicity(highest_wt, new_wt1) != 0:
             if eps > 0:
                 # this records the action of the matrix [[1,t],[0,1]]
-                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
+                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
             else:
                 # this records the action of the matrix [[u^{-1},0],[1,u]] = [[1,0],[u,1]]*[[u^{-1},0],[0,u]]
-                output += self.generic_evaluation3(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j)
+                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j)
             j += 1
             new_wt1 += alpha
         return output
+
+    def compare_constructions(self,glist):
+        """
+        Input: A list of g-vectors
+        Output: A comparison of the cluster variables with these g-vectors (evaluated in the parameter ring) and the corresponding
+                sidest weight minors evaluated at a generic point of the reduced double Bruhat cell
+        """
+        for gvect in glist:
+            self._cluster_algebra.find_cluster_variable(gvect)
+            cl_minor = self._cluster_algebra.cluster_variable(gvect).lift().subs(self._initial_cluster)
+            gen_minor = self.generic_evaluation(self._double_coxeter,self.g_to_weight(gvect))
+            if cl_minor == gen_minor:
+                print str(gvect)+": True"
+            else:
+                print str(gvect)+": False"
+                #print "  Cluster minor=",cl_minor
+                #print "  Generalized minor=",gen_minor
+                print "  Diff=",cl_minor-gen_minor
 
