@@ -132,7 +132,7 @@ class LevelZeroMinor(SageObject):
 
     def generic_evaluation(self, xlist, wt1, wt2 = None, highest_wt = None):
         if highest_wt == None:
-            highest_wt = level_zero_dominant_conjugate(wt2)
+            highest_wt = self.level_zero_dominant_conjugate(wt2)
         if wt2 == None:
             wt2 = copy(wt1)
         if xlist == []:
