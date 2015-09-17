@@ -93,7 +93,8 @@ class LevelZeroMinor(SageObject):
 
     def level_zero_weight_multiplicity(self, highest_wt, wt):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
-        pass
+        trunc_wt = sum([wt[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
+        return self._sub_RootSystem.weight_multiplicity(highest_wt,trunc_wt)
 
     def validate_weight(self, xlist, wt1, wt2, highest_wt, alpha, pairing):
         # check whether there is an ambiguity in the next step of generic_evaluation
