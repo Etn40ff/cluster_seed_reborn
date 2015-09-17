@@ -131,6 +131,7 @@ class LevelZeroMinor(SageObject):
             num_steps += 1
             current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
         string_length = self._RootSystem.pairing(alpha,current_wt)
+        print "sl_2 weight=",string_length
         return (num_steps,string_length)
 
     def level_zero_dominant_conjugate(self, wt):
