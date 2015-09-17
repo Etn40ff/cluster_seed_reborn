@@ -19,6 +19,11 @@ class LevelZeroMinor(SageObject):
         self._ext_symm_mat *= self._ext_symm_mat.denominator()
         self._RootSystem = RootSystem(self._rank+1,self._ext_Cartan_mat,self._ext_symm_mat)
 
+        # create finite sub root system
+        self._sub_Cartan_mat = self._ext_Cartan_mat[1:self._rank,1:self._rank]
+        self._sub_symm_mat = self._ext_symm_mat[1:self._rank,1:self._rank]
+        self._sub_RootSystem = RootSystem(self._rank-1,self._sub_Cartan_mat,self._sub_symm_mat)
+
         # create Coxeter word and element
         self._coxeter_word = self.coxeter()
         self._coxeter_element = prod([self._RootSystem._simple_reflections[i] for i in self._coxeter_word])
@@ -86,7 +91,7 @@ class LevelZeroMinor(SageObject):
             source = None
         return tuple(coxeter)
 
-    def affine_weight_multiplicity(self, highest_wt, wt):
+    def level_zero_weight_multiplicity(self, highest_wt, wt):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
         pass
 
@@ -114,7 +119,13 @@ class LevelZeroMinor(SageObject):
 
     def level_zero_dominant_conjugate(self, wt):
         # wt is an element of the finite-type weight subspace of the affine weight space
-        pass
+        wt = self._RootSystem.weightify(wt)
+        trunc_wt = sum([wt[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
+        for w in self._sub_RootSystem.Weyl_group():
+            Weyl_wt = w*trunc_wt
+            if self._sub_RootSystem.is_dominant(Weyl_wt):
+                return self._sub_RootSystem.weightify(Weyl_wt)
+        return self._sub_RootSystem._zero()
 
     def generic_evaluation3(self, xlist, wt1, wt2 = None, highest_wt = None):
         if highest_wt == None:
