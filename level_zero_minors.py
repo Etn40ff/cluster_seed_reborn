@@ -105,7 +105,7 @@ class LevelZeroMinor(SageObject):
         else:
             outward_alpha = -alpha
         current_wt = copy(wt1)
-        current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
+        current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
         initial_wt_mult = current_wt_mult
         while current_wt_mult != 0:
             if current_wt_mult < initial_wt_mult:
@@ -118,7 +118,7 @@ class LevelZeroMinor(SageObject):
                 print "wt1 = ", wt1
                 print "wt2 = ", wt2
             current_wt += outward_alpha
-            current_wt_mult = self.affine_weight_multiplicity(highest_wt, current_wt)
+            current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
 
     def level_zero_dominant_conjugate(self, wt):
         # wt is an element of the finite-type weight subspace of the affine weight space
@@ -144,11 +144,11 @@ class LevelZeroMinor(SageObject):
         i, eps = new_xlist.pop()
         alpha = eps * self._RootSystem._simple_roots[i]
         pairing = self._RootSystem.pairing(alpha, wt1)
-        self.validate_weight(highest_wt, alpha, wt1, pairing)
+        self.validate_weight(xlist, wt1, wt2, highest_wt, alpha, pairing)
         output = 0
         j = 0
         new_wt1 = copy(wt1)
-        while self.affine_weight_multiplicity(highest_wt, new_wt1) != 0:
+        while self.level_zero_weight_multiplicity(highest_wt, new_wt1) != 0:
             if eps > 0:
                 # this records the action of the matrix [[1,t],[0,1]]
                 output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j
