@@ -125,8 +125,7 @@ class RootSystem(SageObject):
             den_exp = w*self.rho
             numer += self._Weyl_group.matrix_space()(w).determinant()*self.character_monomial(num_exp)
             denom += self._Weyl_group.matrix_space()(w).determinant()*self.character_monomial(den_exp)
-        self._characters[highest_weight] = numer/denom
-        return self._characters[highest_weight]
+        return numer/denom
 
 
     def weight_multiplicity(self, highest_weight, weight):
