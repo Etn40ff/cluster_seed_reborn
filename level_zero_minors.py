@@ -92,7 +92,7 @@ class LevelZeroMinor(SageObject):
         return tuple(coxeter)
 
     def truncate_weight(self,wt):
-        return sum([wt[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
+        return sum([self._RootSystem.weightify(wt)[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
 
     def level_zero_weight_multiplicity(self, highest_wt, wt):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
