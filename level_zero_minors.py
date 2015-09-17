@@ -132,7 +132,7 @@ class LevelZeroMinor(SageObject):
             current_wt_mult = self.level_zero_weight_multiplicity(highest_wt, current_wt)
         string_length = self._RootSystem.pairing(alpha,current_wt)
         #print "sl_2 weight=",string_length
-        return (num_steps,string_length)
+        return (num_steps-1,string_length-2)
 
     def level_zero_dominant_conjugate(self, wt):
         # wt is an element of the finite-type weight subspace of the affine weight space
@@ -165,11 +165,15 @@ class LevelZeroMinor(SageObject):
         while self.level_zero_weight_multiplicity(highest_wt, new_wt1) != 0:
             k,n = self.alpha_string(wt1,highest_wt,alpha)
             if eps > 0:
+                #if self._polygens[i]**j * binomial(n-k+j,n-k) != 1:
+                #    print self._RootSystem.weightify(wt1), self._polygens[i]**j * binomial(n-k+j,n-k), n-k+j, n-k, k, n
                 # this records the action of the matrix [[1,t],[0,1]]
-                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j * binomial(n-k+j-1,n-k-1)
+                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[i]**j * binomial(n-k+j,n-k)
             else:
+                #if self._polygens[self._rank + i]**(pairing + j) * binomial(n-k+j,n-k) != 1:
+                #    print self._RootSystem.weightify(wt1), self._polygens[self._rank + i]**(pairing + j) * binomial(n-k+j,n-k), n-k+j,n-k, k, n
                 # this records the action of the matrix [[u^{-1},0],[1,u]] = [[1,0],[u,1]]*[[u^{-1},0],[0,u]]
-                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j) * binomial(k-1,k-j-1)
+                output += self.generic_evaluation(new_xlist, new_wt1, wt2, highest_wt) * self._polygens[self._rank + i]**(pairing + j) * binomial(n-k+j,n-k)
             j += 1
             new_wt1 += alpha
         return output
