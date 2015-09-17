@@ -189,5 +189,5 @@ class LevelZeroMinor(SageObject):
                 print str(gvect)+": False"
                 #print "  Cluster minor=",cl_minor
                 #print "  Generalized minor=",gen_minor
-                print "  Diff=",cl_minor-gen_minor
+                print "  Diff=",expand(factor(cl_minor-gen_minor))
 
