@@ -91,10 +91,12 @@ class LevelZeroMinor(SageObject):
             source = None
         return tuple(coxeter)
 
+    def truncate_weight(self,wt):
+        return sum([wt[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
+
     def level_zero_weight_multiplicity(self, highest_wt, wt):
         # return multiplicity of wt in level zero representation indexed by dominant finite-type highest_wt
-        trunc_wt = sum([wt[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
-        return self._sub_RootSystem.weight_multiplicity(highest_wt,trunc_wt)
+        return self._sub_RootSystem.weight_multiplicity(highest_wt,self.truncate_weight(wt))
 
     def validate_weight(self, xlist, wt1, wt2, highest_wt, alpha, pairing):
         # check whether there is an ambiguity in the next step of generic_evaluation
@@ -121,7 +123,7 @@ class LevelZeroMinor(SageObject):
     def level_zero_dominant_conjugate(self, wt):
         # wt is an element of the finite-type weight subspace of the affine weight space
         wt = self._RootSystem.weightify(wt)
-        trunc_wt = sum([wt[i]*self._sub_RootSystem.fundamental_weight(i-1) for i in xrange(1,self._rank)])
+        trunc_wt = self.truncate_weight(wt)
         for w in self._sub_RootSystem.Weyl_group():
             Weyl_wt = w*trunc_wt
             if self._sub_RootSystem.is_dominant(Weyl_wt):
