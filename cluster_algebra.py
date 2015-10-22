@@ -4,6 +4,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
+from sympy import sympify
 
 ################################################################################
 # Elements of a cluster algebra
@@ -196,13 +197,13 @@ class ClusterAlgebraSeed(SageObject):
 
     def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
-        pos = alg._U(1)
-        neg = alg._U(1)
+        pos = sympify(1)
+        neg = sympify(1)
         for j in xrange(alg.rk):
             if self._C[j,k] > 0:
-                pos *= alg._U.gen(j)**self._C[j,k]
+                pos *= alg._u[j]**self._C[j,k]
             else:
-                neg *= alg._U.gen(j)**(-self._C[j,k])
+                neg *= alg._u[j]**(-self._C[j,k])
             if self._B[j,k] > 0:
                 pos *= self.F_polynomial(j)**self._B[j,k]
             elif self._B[j,k] <0:
@@ -298,7 +299,8 @@ class ClusterAlgebra(Parent):
 
         # TODO: is ZZ the correct ambient here?
         # ambient space for F-polynomials
-        self._U = PolynomialRing(ZZ, ['u%s'%i for i in xrange(n)])
+        #self._U = PolynomialRing(ZZ, ['u%s'%i for i in xrange(n)])
+        self._u = map(sympify, ['u%s'%i for i in xrange(n)])
 
         # already computed data
         # TODO: I am unhappy because _g_vect_set is slightly redundant (we could
@@ -306,7 +308,7 @@ class ClusterAlgebra(Parent):
         # sets than in lists and _path_dict.keys() returns a list. Depending on
         # the number of cluster variables this may be relevant or not.
         self._g_vect_set = set([ tuple(v) for v in I.columns() ])
-        self._F_poly_dict = dict([ (v, self._U(1)) for v in self._g_vect_set ])
+        self._F_poly_dict = dict([ (v, sympify(1)) for v in self._g_vect_set ])
         self._path_dict = dict([ (v, []) for v in self._g_vect_set ])
         
         # setup Parent and ambient
@@ -349,8 +351,8 @@ class ClusterAlgebra(Parent):
 
         # these are used for computing cluster variables using separation of
         # additions
-        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
-        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
+        #self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        #self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
         # recover g-vector from monomials
         # TODO: there should be a method to compute partial inverses
