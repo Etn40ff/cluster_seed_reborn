@@ -1123,30 +1123,11 @@ def _arc(p,q,s,**kwds):
     
     r = norm(p-c)
 
-    a_p,a_q,a_s = map( _to_angle, [p-c,q-c,s-c])
-    angles = [a_p,a_q,a_s]
-    angles.sort()
-
-    if a_s == angles[0]:
-        return arc( c, r, angle=angles[2], sector=(0,2*pi-angles[2]+angles[1]), **kwds) 
-    if a_s == angles[1]:
-        return arc( c, r, angle=angles[0], sector=(0,angles[2]-angles[0]), **kwds)
-    if a_s == angles[2]:
-        return arc( c, r, angle=angles[1], sector=(0,2*pi-angles[1]+angles[0]), **kwds) 
-
-def _to_angle((x,y)):
-    from sage.functions.trig import arctan, arccot
-    from sage.symbolic.all import pi
-    if x >= -y and x >= y:
-        return arctan(y/x)
-    if x >= -y and x < y:
-        return arccot(x/y)
-    if x < -y and x < y:
-        return pi+arctan(y/x)
-    if x < -y and x >= y:
-        return pi+arccot(x/y)
-
-
+    a_p, a_q, a_s = map(lambda x: atan2(x[1],x[0]), [p-c,q-c,s-c])
+    a_p, a_q = sorted([a_p,a_q])
+    if a_s < a_p or a_s > a_q:
+        return arc( c, r, angle=a_q, sector=(0,2*pi-a_q+a_p), **kwds)
+    return arc( c, r, angle=a_p, sector=(0,a_q-a_p), **kwds)
 
 def _stereo_arc(x,y, xy=None,  north=(1,0,0), right=(0,1,0), translation=-1, **kwds):
     from sage.misc.functional import n
