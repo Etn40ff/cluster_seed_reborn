@@ -939,7 +939,7 @@ class TropicalClusterAlgebra(SageObject):
         return G
 
 
-    def plot_cluster_fan_stereographically(self, northsign=1, north=None, right=None, colors=None):
+    def plot_cluster_fan_stereographically(self, northsign=1, north=None, right=None, colors=None, d_vectors=False):
         from sage.plot.graphics import Graphics
         from sage.plot.point import point
         from sage.misc.flatten import flatten
@@ -969,14 +969,24 @@ class TropicalClusterAlgebra(SageObject):
         compatible = []
         while roots:
             x = roots.pop()
+            if x in self.initial_cluster() and d_vectors:
+                x1 = -self.simple_roots()[list(self.initial_cluster()).index(x)]
+            else:
+                x1 = x
             for y in roots:
                 if self.compatibility_degree(x,y) == 0:
-                    compatible.append((x,y))
+                    if y in self.initial_cluster() and d_vectors:
+                        y1 = -self.simple_roots()[list(self.initial_cluster()).index(y)]
+                    else:
+                        y1 = y
+                    compatible.append((x1,y1))
         for (u,v) in compatible:
             G += _stereo_arc(vector(u),vector(v),vector(u+v),north=northsign*north,right=right,thickness=0.5,color='black')
 
         for i in range(3):
             orbit = self.ith_orbit(i)
+            if d_vectors: 
+                orbit[0] = -self.simple_roots()[list(self.initial_cluster()).index(orbit[0])]
             for j in orbit:
                 G += point(_stereo_coordinates(vector(orbit[j]),north=northsign*north,right=right),color=colors[i],zorder=len(G))
 
